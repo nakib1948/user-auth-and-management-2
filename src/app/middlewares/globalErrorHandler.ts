@@ -4,13 +4,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 import { ZodError, ZodIssue } from 'zod';
-import { TErrorSource } from '../interface/error';
-import config from '../config';
-import { handleZodError } from '../errors/handleZodError';
-
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
-  let message: string = '';
+  let message: string = err.message;
   let errorMessage: string = err.message || 'Something went wrong!';
 
   if (err instanceof ZodError) {
@@ -27,7 +23,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   }
   return res.status(statusCode).json({
     success: false,
-    message: 'Validation Error',
+    message,
     errorMessage,
     errorDetails: err,
     stack: err?.stack,

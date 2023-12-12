@@ -1,14 +1,12 @@
 import { Router } from 'express';
-const router = Router();
-
+import { categoryRoutes } from '../modules/category/category.route';
 const router = Router();
 
 const moduleRoutes = [
   {
-    path: '/course',
-    route: course,
+    path: '/categories',
+    route: categoryRoutes,
   },
- 
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

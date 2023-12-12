@@ -5,7 +5,7 @@ const categorySchema = new Schema<TCategory>({
   name: {
     type: String,
     required: true,
-    unique:true
+    unique: true,
   },
 });
 

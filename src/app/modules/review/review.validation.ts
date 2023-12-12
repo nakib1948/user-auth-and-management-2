@@ -18,5 +18,5 @@ const reviewValidationSchema = z.object({
 });
 
 export const reviewValidation = {
-    reviewValidationSchema,
+  reviewValidationSchema,
 };
