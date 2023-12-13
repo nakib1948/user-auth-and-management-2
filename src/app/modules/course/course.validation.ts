@@ -46,18 +46,16 @@ const courseValidationSchema = z.object({
       invalid_type_error: 'provider must be string',
       required_error: 'provider is required',
     }),
-    details: z.array(
-      z.object({
-        level: z.string({
-          invalid_type_error: 'level must be string',
-          required_error: 'level is required',
-        }),
-        description: z.string({
-          invalid_type_error: 'description must be boolean',
-          required_error: 'description is required',
-        }),
+    details: z.object({
+      level: z.string({
+        invalid_type_error: 'level must be string',
+        required_error: 'level is required',
       }),
-    ),
+      description: z.string({
+        invalid_type_error: 'description must be boolean',
+        required_error: 'description is required',
+      }),
+    }),
   }),
 });
 

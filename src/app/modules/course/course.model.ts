@@ -58,7 +58,7 @@ const courseSchema = new Schema<TCourse>({
     type: String,
     required: true,
   },
-  details: [detailsSchema],
+  details: detailsSchema
 });
 
 export const Course = model<TCourse>('Course', courseSchema);
