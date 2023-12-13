@@ -10,6 +10,6 @@ router.post(
   validateRequest(reviewValidation.reviewValidationSchema),
   reviewControllers.createReview,
 );
-router.get('/',reviewControllers.getAllReview)
+router.get('/', reviewControllers.getAllReview);
 
 export const reviewRoutes = router;

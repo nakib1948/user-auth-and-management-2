@@ -1,16 +1,19 @@
 import { Schema, model } from 'mongoose';
 import { TCourse, TDetails, TTags } from './course.interface';
 
-const tagsSchema = new Schema<TTags>({
-  name: {
-    type: String,
-    required: true,
+const tagsSchema = new Schema<TTags>(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      required: true,
+    },
   },
-  isDeleted: {
-    type: Boolean,
-    required: true,
-  },
-});
+  { _id: false },
+);
 const detailsSchema = new Schema<TDetails>({
   level: {
     type: String,

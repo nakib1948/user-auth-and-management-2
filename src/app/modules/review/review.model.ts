@@ -5,7 +5,7 @@ const reviewSchema = new Schema<TReview>({
   courseId: {
     type: Schema.Types.ObjectId,
     require: true,
-    ref:"Course"
+    ref: 'Course',
   },
   rating: {
     type: Number,
