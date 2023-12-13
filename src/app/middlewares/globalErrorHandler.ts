@@ -12,7 +12,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (err instanceof ZodError) {
     message = 'Validation Error';
     errorMessage = err.issues.reduce((val, argu) => {
-      return (val += argu.message);
+      return (val += argu.message + '.');
     }, '');
   } else if (err?.name === 'CastError') {
     message = 'Invalid ID';

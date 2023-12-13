@@ -25,6 +25,7 @@ const courseSchema = new Schema<TCourse>({
   title: {
     type: String,
     required: true,
+    unique: true,
   },
   instructor: {
     type: String,
@@ -58,7 +59,7 @@ const courseSchema = new Schema<TCourse>({
     type: String,
     required: true,
   },
-  details: detailsSchema
+  details: detailsSchema,
 });
 
 export const Course = model<TCourse>('Course', courseSchema);
