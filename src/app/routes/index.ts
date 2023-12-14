@@ -6,12 +6,12 @@ const router = Router();
 
 const moduleRoutes = [
   {
-    path: '/categories',
-    route: categoryRoutes,
+    path: '/',
+    route: courseRoutes,
   },
   {
-    path: '/course',
-    route: courseRoutes,
+    path: '/categories',
+    route: categoryRoutes,
   },
   {
     path: '/reviews',

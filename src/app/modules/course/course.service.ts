@@ -2,6 +2,7 @@ import { populate } from 'dotenv';
 import { TCourse } from './course.interface';
 import { Course } from './course.model';
 import mongoose, { Schema, model, Types } from 'mongoose';
+import { Review } from '../review/review.model';
 const createCourseIntoDB = async (payload: TCourse) => {
   const result = await Course.create(payload);
   return result;
@@ -10,6 +11,31 @@ const createCourseIntoDB = async (payload: TCourse) => {
 const getAllCourseFromDB = async () => {
   const result = await Course.find();
   return result;
+};
+const getBestCourseFromDB = async () => {
+  const result = await Review.aggregate([
+    {
+      $group: {
+        _id: '$courseId',
+        averageRating: { $avg: '$rating' },
+        reviewCount: { $sum: 1 },
+      },
+    },
+    {
+      $sort: { averageRating: -1 },
+    },
+    {
+      $limit: 1,
+    },
+  ]);
+  const { _id, averageRating, reviewCount } = result[0];
+
+  const findCourse = await Course.findById(_id).lean();
+  const { reviews, ...rest } = findCourse;
+  rest.averageRating = averageRating.toFixed(1);
+  rest.reviewCount = reviewCount;
+
+  return rest;
 };
 const updateCourseIntoDB = async (id: string, payload: Partial<TCourse>) => {
   const { tags, details, ...courseRemainingData } = payload;
@@ -77,4 +103,5 @@ export const courseServices = {
   getAllCourseFromDB,
   updateCourseIntoDB,
   getCourseWithReviews,
+  getBestCourseFromDB,
 };
