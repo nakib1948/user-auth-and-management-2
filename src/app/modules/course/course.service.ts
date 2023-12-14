@@ -1,6 +1,7 @@
+import { populate } from 'dotenv';
 import { TCourse } from './course.interface';
 import { Course } from './course.model';
-
+import mongoose, { Schema, model, Types } from 'mongoose';
 const createCourseIntoDB = async (payload: TCourse) => {
   const result = await Course.create(payload);
   return result;
@@ -46,8 +47,34 @@ const updateCourseIntoDB = async (id: string, payload: Partial<TCourse>) => {
   return result;
 };
 
+const getCourseWithReviews = async (id: string) => {
+  const result = await Course.aggregate([
+    {
+      $match: { _id: new Types.ObjectId(id) },
+    },
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: '_id',
+        foreignField: 'courseId',
+        as: 'reviews',
+      },
+    },
+    {
+      $project: {
+        reviews: {
+          _id: 0,
+          __v: 0,
+        },
+      },
+    },
+  ]);
+  return result[0];
+};
+
 export const courseServices = {
   createCourseIntoDB,
   getAllCourseFromDB,
   updateCourseIntoDB,
+  getCourseWithReviews,
 };

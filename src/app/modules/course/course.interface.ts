@@ -8,7 +8,11 @@ export type TDetails = {
   level: string;
   description: string;
 };
-
+export type TReview = {
+  courseId: Types.ObjectId;
+  rating: number;
+  review: string;
+};
 export type TCourse = {
   title: string;
   instructor: string;
@@ -21,4 +25,5 @@ export type TCourse = {
   provider: string;
   durationInWeeks: number;
   details: TDetails;
+  reviews: TReview[];
 };

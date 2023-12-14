@@ -36,7 +36,7 @@ const courseSchema = new Schema<TCourse>({
   },
   categoryId: {
     type: Schema.Types.ObjectId,
-    ref: 'category',
+    ref: 'Category',
   },
   price: {
     type: Number,
@@ -63,6 +63,12 @@ const courseSchema = new Schema<TCourse>({
     required: true,
   },
   details: detailsSchema,
+  reviews: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Review',
+    },
+  ],
 });
 
 export const Course = model<TCourse>('Course', courseSchema);

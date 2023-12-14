@@ -11,6 +11,7 @@ router.post(
   CourseControllers.createCourse,
 );
 router.get('/', CourseControllers.getAllCourse);
+router.get('/:courseId/reviews', CourseControllers.getCourseWithReview);
 router.patch(
   '/:courseId',
   validateRequest(courseValidation.updateCourseValidationSchema),
