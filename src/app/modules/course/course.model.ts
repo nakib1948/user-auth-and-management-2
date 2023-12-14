@@ -62,6 +62,7 @@ const courseSchema = new Schema<TCourse>({
     type: String,
     required: true,
   },
+  durationInWeeks: { type: Number },
   details: detailsSchema,
   reviews: [
     {

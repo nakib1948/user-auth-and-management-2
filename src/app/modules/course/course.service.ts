@@ -3,14 +3,76 @@ import { TCourse } from './course.interface';
 import { Course } from './course.model';
 import mongoose, { Schema, model, Types } from 'mongoose';
 import { Review } from '../review/review.model';
+import { numberOfWeeks } from '../../utils/WeekCalculation';
 const createCourseIntoDB = async (payload: TCourse) => {
+  const durationInWeeks = await numberOfWeeks(
+    payload?.startDate,
+    payload?.endDate,
+  );
+  payload.durationInWeeks = durationInWeeks;
   const result = await Course.create(payload);
-  return result;
+
+  const { reviews, ...rest } = result.toObject();
+
+  return rest;
 };
 
-const getAllCourseFromDB = async () => {
-  const result = await Course.find();
-  return result;
+const getAllCourseFromDB = async (query: any) => {
+  const queryObj = { ...query };
+  let result;
+  const pageNumber = parseInt(query.page) || 1;
+  const limitNumber = parseInt(query.limit) || 10;
+  const startIndex = (pageNumber - 1) * limitNumber;
+  if (query.sortOrder && query.sortBy) {
+    const sortField = query.sortBy;
+    const sortOrder = query.sortOrder === 'desc' ? -1 : 1;
+
+    const sort = {
+      [sortField]: sortOrder,
+    };
+
+    result = await Course.find().sort(sort).skip(startIndex).limit(limitNumber);
+  } else if (query.sortBy) {
+    const sortField = queryObj.sortBy;
+    const sort = {
+      [sortField]: 1,
+    };
+
+    result = await Course.find().sort(sort).skip(startIndex).limit(limitNumber);
+  } else if (query.minPrice) {
+    result = await Course.find({
+      price: { $gte: Number(query.minPrice), $lte: Number(query.maxPrice) },
+    })
+      .skip(startIndex)
+      .limit(limitNumber);
+  } else if (query.tags) {
+    result = await Course.find({ 'tags.name': { $in: query.tags } })
+      .skip(startIndex)
+      .limit(limitNumber);
+  } else if (query.startDate) {
+    result = await Course.find({
+      startDate: { $gte: query.startDate },
+      endDate: { $lte: query.endDate },
+    })
+      .skip(startIndex)
+      .limit(limitNumber);
+  } else if (query.language || query.provider || query.durationInWeeks) {
+    result = await Course.find(query).skip(startIndex).limit(limitNumber);
+  } else if (query.level) {
+    result = await Course.find({ 'details.level': query.level })
+      .skip(startIndex)
+      .limit(limitNumber);
+  } else {
+    result = await Course.find().skip(startIndex).limit(limitNumber);
+  }
+
+  const meta = {
+    page: parseInt(query.page) || 1,
+    limit: parseInt(query.limit) || 10,
+    total: result.length,
+  };
+
+  return { result, meta };
 };
 const getBestCourseFromDB = async () => {
   const result = await Review.aggregate([
@@ -31,10 +93,10 @@ const getBestCourseFromDB = async () => {
   const { _id, averageRating, reviewCount } = result[0];
 
   const findCourse = await Course.findById(_id).lean();
-  const { reviews, ...rest } = findCourse;
-  rest.averageRating = averageRating.toFixed(1);
-  rest.reviewCount = reviewCount;
 
+  const { reviews, ...rest } = findCourse;
+  rest.averageRating = Number(averageRating.toFixed(1));
+  rest.reviewCount = reviewCount;
   return rest;
 };
 const updateCourseIntoDB = async (id: string, payload: Partial<TCourse>) => {
@@ -69,8 +131,9 @@ const updateCourseIntoDB = async (id: string, payload: Partial<TCourse>) => {
       $addToSet: { tags: { $each: newTags } },
     });
   }
-  const result = await Course.findById(id);
-  return result;
+  const result = await Course.findById(id).lean();
+  const { review, ...rest } = result;
+  return rest;
 };
 
 const getCourseWithReviews = async (id: string) => {
@@ -95,6 +158,7 @@ const getCourseWithReviews = async (id: string) => {
       },
     },
   ]);
+
   return result[0];
 };
 
