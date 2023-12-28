@@ -1,11 +1,16 @@
+import { USER_ROLE } from './user.constant';
+
 export interface TUser {
-    username:string;
-    email: string;
-    password: string;
-    role: 'admin' | 'user';
+  username: string;
+  email: string;
+  password: string;
+  previousPassword:string;
+  role: 'admin' | 'user';
 }
 
 export type TLoginUser = {
-    username: string;
-    password: string;
-  };
+  username: string;
+  password: string;
+};
+
+export type TUserRole = keyof typeof USER_ROLE;

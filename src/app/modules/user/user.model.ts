@@ -7,7 +7,7 @@ const userSchema = new Schema<TUser>(
     username: {
       type: String,
       required: true,
-      unique:true
+      unique: true,
     },
     email: {
       type: String,
@@ -18,6 +18,7 @@ const userSchema = new Schema<TUser>(
       type: String,
       required: true,
     },
+    previousPassword: String,
     role: {
       type: String,
       enum: ['user', 'admin'],

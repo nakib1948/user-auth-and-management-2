@@ -6,8 +6,9 @@ import { User } from './user.model';
 import bcrypt from 'bcrypt';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 const createUserIntoDB = async (payload: TUser) => {
+  payload.previousPassword = '';
   const result = await User.create(payload);
-  const { password, ...rest } = result.toObject();
+  const { password, previousPassword, ...rest } = result.toObject();
   return rest;
 };
 const loginUser = async (payload: TLoginUser) => {
@@ -25,8 +26,9 @@ const loginUser = async (payload: TLoginUser) => {
     throw new AppError(httpStatus.FORBIDDEN, 'password donot matched!');
   }
   const jwtPayload = {
-    username: isUserExists.username,
+    _id: isUserExists._id,
     role: isUserExists.role,
+    email: isUserExists.email,
   };
 
   const accessToken = jwt.sign(jwtPayload, config.jwt_access_secret, {
@@ -45,7 +47,53 @@ const loginUser = async (payload: TLoginUser) => {
   };
 };
 
+const changePassword = async (user: JwtPayload, payload) => {
+  const getUser = await User.findOne({ email: user.email });
+  const isPasswordMatched = await bcrypt.compare(
+    payload.currentPassword,
+    getUser?.password,
+  );
+  if (!isPasswordMatched) {
+    throw new AppError(httpStatus.FORBIDDEN, 'currentPassword donot matched!');
+  }
+
+  const previousPasswordMatched = await bcrypt.compare(
+    payload.newPassword,
+    getUser?.previousPassword,
+  );
+  if (
+    previousPasswordMatched ||
+    payload.currentPassword === payload.newPassword
+  ) {
+    return null;
+  }
+  const updatedPassword = await bcrypt.hash(
+    payload.newPassword,
+    Number(config.bcrypt_salt_rounds),
+  );
+  const result = await User.findOneAndUpdate(
+    {
+      email: user.email,
+    },
+    {
+      password: updatedPassword,
+      previousPassword: getUser?.password,
+    },
+  ).lean();
+
+  const userData = {
+    _id: result._id,
+    username: result.username,
+    email: result.email,
+    role: result.role,
+    createdAt: result.createdAt,
+    updatedAt: result.updatedAt,
+  };
+  return userData;
+};
+
 export const UserServices = {
   createUserIntoDB,
   loginUser,
+  changePassword,
 };
