@@ -4,7 +4,10 @@ export interface TUser {
   username: string;
   email: string;
   password: string;
-  previousPassword:string;
+  previousPassword:{
+     firstPassword:string;
+     secondPassword:string;
+  };
   role: 'admin' | 'user';
 }
 

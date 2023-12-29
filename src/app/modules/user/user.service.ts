@@ -6,7 +6,10 @@ import { User } from './user.model';
 import bcrypt from 'bcrypt';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 const createUserIntoDB = async (payload: TUser) => {
-  payload.previousPassword = '';
+  payload.previousPassword = {
+    firstPassword: '',
+    secondPassword: '',
+  };
   const result = await User.create(payload);
   const { password, previousPassword, ...rest } = result.toObject();
   return rest;
@@ -57,27 +60,55 @@ const changePassword = async (user: JwtPayload, payload) => {
     throw new AppError(httpStatus.FORBIDDEN, 'currentPassword donot matched!');
   }
 
-  const previousPasswordMatched = await bcrypt.compare(
+  const previousPasswordMatched1 = await bcrypt.compare(
     payload.newPassword,
-    getUser?.previousPassword,
+    getUser?.previousPassword.firstPassword,
+  );
+  const previousPasswordMatched2 = await bcrypt.compare(
+    payload.newPassword,
+    getUser?.previousPassword.secondPassword,
   );
   if (
-    previousPasswordMatched ||
+    previousPasswordMatched1 ||
+    previousPasswordMatched2 ||
     payload.currentPassword === payload.newPassword
   ) {
-    return null;
+    const inputDateString = getUser?.updatedAt;
+    const inputDate = new Date(inputDateString);
+
+    const optionsDate = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    };
+    
+    const optionsTime = {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    };
+    
+    const formattedDateString = inputDate.toLocaleDateString('en-US', optionsDate);
+    const formattedTimeString = inputDate.toLocaleTimeString('en-US', optionsTime);
+    
+    const formattedDateTimeString = `${formattedDateString} at ${formattedTimeString}`;
+    return { data: formattedDateTimeString, success: false };
   }
   const updatedPassword = await bcrypt.hash(
     payload.newPassword,
     Number(config.bcrypt_salt_rounds),
   );
+  const previousPassword = {
+    firstPassword: getUser?.previousPassword.secondPassword,
+    secondPassword: getUser?.password,
+  };
   const result = await User.findOneAndUpdate(
     {
       email: user.email,
     },
     {
       password: updatedPassword,
-      previousPassword: getUser?.password,
+      previousPassword: previousPassword,
     },
   ).lean();
 
@@ -89,7 +120,7 @@ const changePassword = async (user: JwtPayload, payload) => {
     createdAt: result.createdAt,
     updatedAt: result.updatedAt,
   };
-  return userData;
+  return { data: userData, success: true };
 };
 
 export const UserServices = {

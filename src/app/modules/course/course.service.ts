@@ -1,10 +1,11 @@
+import { JwtPayload } from 'jsonwebtoken';
 import { populate } from 'dotenv';
 import { TCourse } from './course.interface';
 import { Course } from './course.model';
 import mongoose, { Schema, model, Types } from 'mongoose';
 import { Review } from '../review/review.model';
 import { numberOfWeeks } from '../../utils/WeekCalculation';
-const createCourseIntoDB = async (payload: TCourse) => {
+const createCourseIntoDB = async (payload: TCourse, user: JwtPayload) => {
   const durationInWeeks = await numberOfWeeks(
     payload?.startDate,
     payload?.endDate,
@@ -13,6 +14,7 @@ const createCourseIntoDB = async (payload: TCourse) => {
   const result = await Course.create(payload);
 
   const { reviews, ...rest } = result.toObject();
+  rest.createdBy = user._id;
 
   return rest;
 };

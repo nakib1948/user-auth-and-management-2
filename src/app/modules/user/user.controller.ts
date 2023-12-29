@@ -25,20 +25,21 @@ const loginUser = catchAsync(async (req, res) => {
 
 const changePassword = catchAsync(async (req, res) => {
   const result = await UserServices.changePassword(req.user, req.body);
+  
 
-  if (result) {
+  if (result.success) {
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'Password changed successfully',
-      data: result,
+      data: result.data,
     });
   } else {
     sendResponse(res, {
       success: false,
       statusCode: httpStatus.BAD_REQUEST,
       message:
-        'Password change failed. Ensure the new password is unique and not among the last 2 used',
+        `Password change failed. Ensure the new password is unique and not among the last 2 used (last used on ${result.data}).`,
       data: null,
     });
   }

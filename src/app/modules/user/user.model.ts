@@ -18,7 +18,10 @@ const userSchema = new Schema<TUser>(
       type: String,
       required: true,
     },
-    previousPassword: String,
+    previousPassword: {
+      firstPassword: String,
+      secondPassword: String,
+    },
     role: {
       type: String,
       enum: ['user', 'admin'],
