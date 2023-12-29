@@ -8,7 +8,7 @@ import auth from '../../middlewares/auth';
 const router = express.Router();
 
 router.post(
-  '/',auth(USER_ROLE.admin, USER_ROLE.user),
+  '/',auth(USER_ROLE.user),
   validateRequest(reviewValidation.reviewValidationSchema),
   reviewControllers.createReview,
 );

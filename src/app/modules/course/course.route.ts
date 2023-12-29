@@ -17,7 +17,7 @@ router.get('/courses', CourseControllers.getAllCourse);
 router.get('/courses/:courseId/reviews', CourseControllers.getCourseWithReview);
 router.get('/course/best', CourseControllers.getBestCourse);
 router.put(
-  '/courses/:courseId',
+  '/courses/:courseId', auth(USER_ROLE.admin),
   validateRequest(courseValidation.updateCourseValidationSchema),
   CourseControllers.updateCourse,
 );

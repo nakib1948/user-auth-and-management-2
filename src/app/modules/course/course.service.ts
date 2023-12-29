@@ -134,7 +134,7 @@ const updateCourseIntoDB = async (id: string, payload: Partial<TCourse>) => {
       $addToSet: { tags: { $each: newTags } },
     });
   }
-  const result = await Course.findById(id).lean();
+  const result = await Course.findById(id).populate('createdBy', { _id: 1,username:1,email:1,role:1 }).lean();
   const { review, ...rest } = result;
   return rest;
 };
