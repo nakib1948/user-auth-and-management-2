@@ -33,42 +33,59 @@ const getAllCourseFromDB = async (query: any) => {
       [sortField]: sortOrder,
     };
 
-    result = await Course.find().populate('createdBy', { _id: 1,username:1,email:1,role:1 }).sort(sort).skip(startIndex).limit(limitNumber);
+    result = await Course.find()
+      .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
+      .sort(sort)
+      .skip(startIndex)
+      .limit(limitNumber);
   } else if (query.sortBy) {
     const sortField = queryObj.sortBy;
     const sort = {
       [sortField]: 1,
     };
 
-    result = await Course.find().populate('createdBy', { _id: 1,username:1,email:1,role:1 }).sort(sort).skip(startIndex).limit(limitNumber);
+    result = await Course.find()
+      .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
+      .sort(sort)
+      .skip(startIndex)
+      .limit(limitNumber);
   } else if (query.minPrice) {
     result = await Course.find({
       price: { $gte: Number(query.minPrice), $lte: Number(query.maxPrice) },
-    }).populate('createdBy', { _id: 1,username:1,email:1,role:1 })
+    })
+      .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
       .skip(startIndex)
       .limit(limitNumber);
   } else if (query.tags) {
-    result = await Course.find({ 'tags.name': { $in: query.tags } }).populate('createdBy', { _id: 1,username:1,email:1,role:1 })
+    result = await Course.find({ 'tags.name': { $in: query.tags } })
+      .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
       .skip(startIndex)
       .limit(limitNumber);
   } else if (query.startDate) {
     result = await Course.find({
       startDate: { $gte: query.startDate },
       endDate: { $lte: query.endDate },
-    }).populate('createdBy', { _id: 1,username:1,email:1,role:1 })
+    })
+      .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
       .skip(startIndex)
       .limit(limitNumber);
   } else if (query.language || query.provider || query.durationInWeeks) {
-    result = await Course.find(query).populate('createdBy', { _id: 1,username:1,email:1,role:1 }).skip(startIndex).limit(limitNumber);
+    result = await Course.find(query)
+      .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
+      .skip(startIndex)
+      .limit(limitNumber);
   } else if (query.level) {
-    result = await Course.find({ 'details.level': query.level }).populate('createdBy', { _id: 1,username:1,email:1,role:1 })
+    result = await Course.find({ 'details.level': query.level })
+      .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
       .skip(startIndex)
       .limit(limitNumber);
   } else {
-   
-    result = await Course.find().populate('createdBy', { _id: 1,username:1,email:1,role:1 }).skip(startIndex).limit(limitNumber);
+    result = await Course.find()
+      .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
+      .skip(startIndex)
+      .limit(limitNumber);
   }
-  
+
   const meta = {
     page: parseInt(query.page) || 1,
     limit: parseInt(query.limit) || 10,
@@ -134,7 +151,9 @@ const updateCourseIntoDB = async (id: string, payload: Partial<TCourse>) => {
       $addToSet: { tags: { $each: newTags } },
     });
   }
-  const result = await Course.findById(id).populate('createdBy', { _id: 1,username:1,email:1,role:1 }).lean();
+  const result = await Course.findById(id)
+    .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
+    .lean();
   const { review, ...rest } = result;
   return rest;
 };
@@ -152,8 +171,24 @@ const getCourseWithReviews = async (id: string) => {
         as: 'reviews',
       },
     },
+    
+    {
+      $lookup: {
+        from: 'users', 
+        localField: 'createdBy',
+        foreignField: '_id',
+        as: 'createdBy',
+      },
+    },
     {
       $project: {
+        createdBy:{
+          password:0,
+          previousPassword:0,
+          createdAt:0,
+          updatedAt:0,
+          __v: 0,
+        },
         reviews: {
           _id: 0,
           __v: 0,
