@@ -18,7 +18,7 @@ const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
 const course_service_1 = require("./course.service");
 const createCourse = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield course_service_1.courseServices.createCourseIntoDB(req.body);
+    const result = yield course_service_1.courseServices.createCourseIntoDB(req.body, req.user);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.CREATED,

@@ -8,5 +8,11 @@ const categorySchema = new mongoose_1.Schema({
         required: true,
         unique: true,
     },
+    createdBy: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+}, {
+    timestamps: true,
 });
 exports.Category = (0, mongoose_1.model)('Category', categorySchema);

@@ -62,11 +62,17 @@ const courseSchema = new mongoose_1.Schema({
     },
     durationInWeeks: { type: Number },
     details: detailsSchema,
+    createdBy: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     reviews: [
         {
             type: mongoose_1.Schema.Types.ObjectId,
             ref: 'Review',
         },
     ],
+}, {
+    timestamps: true,
 });
 exports.Course = (0, mongoose_1.model)('Course', courseSchema);

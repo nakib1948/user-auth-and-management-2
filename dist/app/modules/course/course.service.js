@@ -25,9 +25,10 @@ const course_model_1 = require("./course.model");
 const mongoose_1 = require("mongoose");
 const review_model_1 = require("../review/review.model");
 const WeekCalculation_1 = require("../../utils/WeekCalculation");
-const createCourseIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+const createCourseIntoDB = (payload, user) => __awaiter(void 0, void 0, void 0, function* () {
     const durationInWeeks = yield (0, WeekCalculation_1.numberOfWeeks)(payload === null || payload === void 0 ? void 0 : payload.startDate, payload === null || payload === void 0 ? void 0 : payload.endDate);
     payload.durationInWeeks = durationInWeeks;
+    payload.createdBy = user._id;
     const result = yield course_model_1.Course.create(payload);
     const _a = result.toObject(), { reviews } = _a, rest = __rest(_a, ["reviews"]);
     return rest;
@@ -44,24 +45,34 @@ const getAllCourseFromDB = (query) => __awaiter(void 0, void 0, void 0, function
         const sort = {
             [sortField]: sortOrder,
         };
-        result = yield course_model_1.Course.find().sort(sort).skip(startIndex).limit(limitNumber);
+        result = yield course_model_1.Course.find()
+            .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
+            .sort(sort)
+            .skip(startIndex)
+            .limit(limitNumber);
     }
     else if (query.sortBy) {
         const sortField = queryObj.sortBy;
         const sort = {
             [sortField]: 1,
         };
-        result = yield course_model_1.Course.find().sort(sort).skip(startIndex).limit(limitNumber);
+        result = yield course_model_1.Course.find()
+            .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
+            .sort(sort)
+            .skip(startIndex)
+            .limit(limitNumber);
     }
     else if (query.minPrice) {
         result = yield course_model_1.Course.find({
             price: { $gte: Number(query.minPrice), $lte: Number(query.maxPrice) },
         })
+            .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
             .skip(startIndex)
             .limit(limitNumber);
     }
     else if (query.tags) {
         result = yield course_model_1.Course.find({ 'tags.name': { $in: query.tags } })
+            .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
             .skip(startIndex)
             .limit(limitNumber);
     }
@@ -70,19 +81,27 @@ const getAllCourseFromDB = (query) => __awaiter(void 0, void 0, void 0, function
             startDate: { $gte: query.startDate },
             endDate: { $lte: query.endDate },
         })
+            .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
             .skip(startIndex)
             .limit(limitNumber);
     }
     else if (query.language || query.provider || query.durationInWeeks) {
-        result = yield course_model_1.Course.find(query).skip(startIndex).limit(limitNumber);
+        result = yield course_model_1.Course.find(query)
+            .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
+            .skip(startIndex)
+            .limit(limitNumber);
     }
     else if (query.level) {
         result = yield course_model_1.Course.find({ 'details.level': query.level })
+            .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
             .skip(startIndex)
             .limit(limitNumber);
     }
     else {
-        result = yield course_model_1.Course.find().skip(startIndex).limit(limitNumber);
+        result = yield course_model_1.Course.find()
+            .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
+            .skip(startIndex)
+            .limit(limitNumber);
     }
     const meta = {
         page: parseInt(query.page) || 1,
@@ -138,7 +157,9 @@ const updateCourseIntoDB = (id, payload) => __awaiter(void 0, void 0, void 0, fu
             $addToSet: { tags: { $each: newTags } },
         });
     }
-    const result = yield course_model_1.Course.findById(id).lean();
+    const result = yield course_model_1.Course.findById(id)
+        .populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 })
+        .lean();
     const { review } = result, rest = __rest(result, ["review"]);
     return rest;
 });
@@ -156,7 +177,22 @@ const getCourseWithReviews = (id) => __awaiter(void 0, void 0, void 0, function*
             },
         },
         {
+            $lookup: {
+                from: 'users',
+                localField: 'createdBy',
+                foreignField: '_id',
+                as: 'createdBy',
+            },
+        },
+        {
             $project: {
+                createdBy: {
+                    password: 0,
+                    previousPassword: 0,
+                    createdAt: 0,
+                    updatedAt: 0,
+                    __v: 0,
+                },
                 reviews: {
                     _id: 0,
                     __v: 0,
