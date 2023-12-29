@@ -65,6 +65,10 @@ const courseSchema = new Schema<TCourse>(
     },
     durationInWeeks: { type: Number },
     details: detailsSchema,
+    createdBy:{
+      type: Schema.Types.ObjectId,
+      ref: 'User'
+    },
     reviews: [
       {
         type: Schema.Types.ObjectId,

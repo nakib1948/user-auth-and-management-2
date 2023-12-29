@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-
+import {JwtPayload} from "jsonwebtoken"
 export type TTags = {
   name: string;
   isDeleted: boolean;
@@ -25,5 +25,6 @@ export type TCourse = {
   provider: string;
   durationInWeeks: number;
   details: TDetails;
+  createdBy: Types.ObjectId;
   reviews: TReview[];
 };

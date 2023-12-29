@@ -11,10 +11,10 @@ const createCourseIntoDB = async (payload: TCourse, user: JwtPayload) => {
     payload?.endDate,
   );
   payload.durationInWeeks = durationInWeeks;
+  payload.createdBy = user._id;
   const result = await Course.create(payload);
 
   const { reviews, ...rest } = result.toObject();
-  rest.createdBy = user._id;
 
   return rest;
 };
@@ -33,41 +33,42 @@ const getAllCourseFromDB = async (query: any) => {
       [sortField]: sortOrder,
     };
 
-    result = await Course.find().sort(sort).skip(startIndex).limit(limitNumber);
+    result = await Course.find().populate('createdBy', { _id: 1,username:1,email:1,role:1 }).sort(sort).skip(startIndex).limit(limitNumber);
   } else if (query.sortBy) {
     const sortField = queryObj.sortBy;
     const sort = {
       [sortField]: 1,
     };
 
-    result = await Course.find().sort(sort).skip(startIndex).limit(limitNumber);
+    result = await Course.find().populate('createdBy', { _id: 1,username:1,email:1,role:1 }).sort(sort).skip(startIndex).limit(limitNumber);
   } else if (query.minPrice) {
     result = await Course.find({
       price: { $gte: Number(query.minPrice), $lte: Number(query.maxPrice) },
-    })
+    }).populate('createdBy', { _id: 1,username:1,email:1,role:1 })
       .skip(startIndex)
       .limit(limitNumber);
   } else if (query.tags) {
-    result = await Course.find({ 'tags.name': { $in: query.tags } })
+    result = await Course.find({ 'tags.name': { $in: query.tags } }).populate('createdBy', { _id: 1,username:1,email:1,role:1 })
       .skip(startIndex)
       .limit(limitNumber);
   } else if (query.startDate) {
     result = await Course.find({
       startDate: { $gte: query.startDate },
       endDate: { $lte: query.endDate },
-    })
+    }).populate('createdBy', { _id: 1,username:1,email:1,role:1 })
       .skip(startIndex)
       .limit(limitNumber);
   } else if (query.language || query.provider || query.durationInWeeks) {
-    result = await Course.find(query).skip(startIndex).limit(limitNumber);
+    result = await Course.find(query).populate('createdBy', { _id: 1,username:1,email:1,role:1 }).skip(startIndex).limit(limitNumber);
   } else if (query.level) {
-    result = await Course.find({ 'details.level': query.level })
+    result = await Course.find({ 'details.level': query.level }).populate('createdBy', { _id: 1,username:1,email:1,role:1 })
       .skip(startIndex)
       .limit(limitNumber);
   } else {
-    result = await Course.find().skip(startIndex).limit(limitNumber);
+   
+    result = await Course.find().populate('createdBy', { _id: 1,username:1,email:1,role:1 }).skip(startIndex).limit(limitNumber);
   }
-
+  
   const meta = {
     page: parseInt(query.page) || 1,
     limit: parseInt(query.limit) || 10,
