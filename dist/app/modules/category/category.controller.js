@@ -18,7 +18,7 @@ const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
 const category_service_1 = require("./category.service");
 const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
 const createCategory = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield category_service_1.categoryServices.createCategoryIntoDB(req.body);
+    const result = yield category_service_1.categoryServices.createCategoryIntoDB(req.body, req.user);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_1.default.CREATED,

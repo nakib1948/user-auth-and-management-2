@@ -8,19 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.categoryServices = void 0;
-const category_model_1 = require("./category.model");
-const createCategoryIntoDB = (payload, user) => __awaiter(void 0, void 0, void 0, function* () {
-    payload.createdBy = user._id;
-    const result = yield category_model_1.Category.create(payload);
-    return result;
-});
-const getAllCategoryFromDB = () => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield category_model_1.Category.find().populate('createdBy', { _id: 1, username: 1, email: 1, role: 1 });
-    return result;
-});
-exports.categoryServices = {
-    createCategoryIntoDB,
-    getAllCategoryFromDB,
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.comparePassword = void 0;
+const bcrypt_1 = __importDefault(require("bcrypt"));
+const comparePassword = (password, hash) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield bcrypt_1.default.compare(password, hash);
+});
+exports.comparePassword = comparePassword;

@@ -5,6 +5,7 @@ import { TLoginUser, TUser } from './user.interface';
 import { User } from './user.model';
 import bcrypt from 'bcrypt';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import { comparePassword } from './user.utils';
 const createUserIntoDB = async (payload: TUser) => {
   payload.previousPassword = {
     firstPassword: '',
@@ -21,11 +22,7 @@ const loginUser = async (payload: TLoginUser) => {
     throw new AppError(httpStatus.NOT_FOUND, 'This user is not found !');
   }
 
-  const isPasswordMatched = await bcrypt.compare(
-    payload.password,
-    isUserExists?.password,
-  );
-  if (!isPasswordMatched) {
+  if (payload.password !== isUserExists?.password) {
     throw new AppError(httpStatus.FORBIDDEN, 'password donot matched!');
   }
   const jwtPayload = {
@@ -52,65 +49,32 @@ const loginUser = async (payload: TLoginUser) => {
 
 const changePassword = async (user: JwtPayload, payload) => {
   const getUser = await User.findOne({ email: user.email });
-  const isPasswordMatched = await bcrypt.compare(
-    payload.currentPassword,
-    getUser?.password,
-  );
-  if (!isPasswordMatched) {
-    throw new AppError(httpStatus.FORBIDDEN, 'currentPassword donot matched!');
+
+  if (getUser?.password !== payload.currentPassword) {
+    throw new AppError(httpStatus.FORBIDDEN, 'currentPassword does not match!');
   }
 
-  const previousPasswordMatched1 = await bcrypt.compare(
-    payload.newPassword,
-    getUser?.previousPassword.firstPassword,
-  );
-  const previousPasswordMatched2 = await bcrypt.compare(
-    payload.newPassword,
-    getUser?.previousPassword.secondPassword,
-  );
   if (
-    previousPasswordMatched1 ||
-    previousPasswordMatched2 ||
+    payload.newPassword === getUser?.previousPassword.firstPassword ||
+    payload.newPassword === getUser?.previousPassword.secondPassword ||
     payload.currentPassword === payload.newPassword
   ) {
-    const inputDateString = getUser?.updatedAt;
-    const inputDate = new Date(inputDateString);
-
-    const optionsDate = {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    };
-    
-    const optionsTime = {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    };
-    
-    const formattedDateString = inputDate.toLocaleDateString('en-US', optionsDate);
-    const formattedTimeString = inputDate.toLocaleTimeString('en-US', optionsTime);
-    
-    const formattedDateTimeString = `${formattedDateString} at ${formattedTimeString}`;
+    const formattedDateTimeString = new Date().toISOString();
     return { data: formattedDateTimeString, success: false };
   }
-  const updatedPassword = await bcrypt.hash(
-    payload.newPassword,
-    Number(config.bcrypt_salt_rounds),
-  );
+
+  const updatedPassword = payload.newPassword;
+
   const previousPassword = {
     firstPassword: getUser?.previousPassword.secondPassword,
     secondPassword: getUser?.password,
   };
+
   const result = await User.findOneAndUpdate(
-    {
-      email: user.email,
-    },
-    {
-      password: updatedPassword,
-      previousPassword: previousPassword,
-    },
-  ).lean();
+    { email: user.email },
+    { password: updatedPassword, previousPassword },
+    { new: true, lean: true },
+  );
 
   const userData = {
     _id: result._id,
@@ -120,6 +84,7 @@ const changePassword = async (user: JwtPayload, payload) => {
     createdAt: result.createdAt,
     updatedAt: result.updatedAt,
   };
+
   return { data: userData, success: true };
 };
 

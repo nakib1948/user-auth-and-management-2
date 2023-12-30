@@ -28,7 +28,6 @@ const http_status_1 = __importDefault(require("http-status"));
 const config_1 = __importDefault(require("../../config"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const user_model_1 = require("./user.model");
-const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const createUserIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     payload.previousPassword = {
@@ -44,8 +43,7 @@ const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     if (!isUserExists) {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'This user is not found !');
     }
-    const isPasswordMatched = yield bcrypt_1.default.compare(payload.password, isUserExists === null || isUserExists === void 0 ? void 0 : isUserExists.password);
-    if (!isPasswordMatched) {
+    if (payload.password !== (isUserExists === null || isUserExists === void 0 ? void 0 : isUserExists.password)) {
         throw new AppError_1.default(http_status_1.default.FORBIDDEN, 'password donot matched!');
     }
     const jwtPayload = {
@@ -69,43 +67,21 @@ const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const changePassword = (user, payload) => __awaiter(void 0, void 0, void 0, function* () {
     const getUser = yield user_model_1.User.findOne({ email: user.email });
-    const isPasswordMatched = yield bcrypt_1.default.compare(payload.currentPassword, getUser === null || getUser === void 0 ? void 0 : getUser.password);
-    if (!isPasswordMatched) {
-        throw new AppError_1.default(http_status_1.default.FORBIDDEN, 'currentPassword donot matched!');
+    if ((getUser === null || getUser === void 0 ? void 0 : getUser.password) !== payload.currentPassword) {
+        throw new AppError_1.default(http_status_1.default.FORBIDDEN, 'currentPassword does not match!');
     }
-    const previousPasswordMatched1 = yield bcrypt_1.default.compare(payload.newPassword, getUser === null || getUser === void 0 ? void 0 : getUser.previousPassword.firstPassword);
-    const previousPasswordMatched2 = yield bcrypt_1.default.compare(payload.newPassword, getUser === null || getUser === void 0 ? void 0 : getUser.previousPassword.secondPassword);
-    if (previousPasswordMatched1 ||
-        previousPasswordMatched2 ||
+    if (payload.newPassword === (getUser === null || getUser === void 0 ? void 0 : getUser.previousPassword.firstPassword) ||
+        payload.newPassword === (getUser === null || getUser === void 0 ? void 0 : getUser.previousPassword.secondPassword) ||
         payload.currentPassword === payload.newPassword) {
-        const inputDateString = getUser === null || getUser === void 0 ? void 0 : getUser.updatedAt;
-        const inputDate = new Date(inputDateString);
-        const optionsDate = {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-        };
-        const optionsTime = {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-        };
-        const formattedDateString = inputDate.toLocaleDateString('en-US', optionsDate);
-        const formattedTimeString = inputDate.toLocaleTimeString('en-US', optionsTime);
-        const formattedDateTimeString = `${formattedDateString} at ${formattedTimeString}`;
+        const formattedDateTimeString = new Date().toISOString();
         return { data: formattedDateTimeString, success: false };
     }
-    const updatedPassword = yield bcrypt_1.default.hash(payload.newPassword, Number(config_1.default.bcrypt_salt_rounds));
+    const updatedPassword = payload.newPassword;
     const previousPassword = {
         firstPassword: getUser === null || getUser === void 0 ? void 0 : getUser.previousPassword.secondPassword,
         secondPassword: getUser === null || getUser === void 0 ? void 0 : getUser.password,
     };
-    const result = yield user_model_1.User.findOneAndUpdate({
-        email: user.email,
-    }, {
-        password: updatedPassword,
-        previousPassword: previousPassword,
-    }).lean();
+    const result = yield user_model_1.User.findOneAndUpdate({ email: user.email }, { password: updatedPassword, previousPassword }, { new: true, lean: true });
     const userData = {
         _id: result._id,
         username: result.username,
