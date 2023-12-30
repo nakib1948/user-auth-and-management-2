@@ -1,9 +1,9 @@
 
-# Assignment-3-L2
+# Assignment-4-L2
 
 ## Description
 
-This project is a sample implementation of a user Management service application using Node.js, Express, and MongoDB.
+This project is a sample implementation of a user and course Management service application using Node.js, Express, and MongoDB.
 
 ## Prerequisites
 
@@ -18,13 +18,13 @@ Make sure you have the following installed:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/nakib1948/Assignment-3-L2.git
+   git clone https://github.com/nakib1948/Assignment-4-L2.git
    ```
 
 2. Install dependencies:
 
    ```bash
-   cd Assignment-3-L2
+   cd Assignment-4-L2
    npm install
    ```
 
@@ -95,4 +95,9 @@ Make sure you have the following installed:
 
    ```bash
    npm run prettier:fix
+   ```
+### Documentation
+ Follow the link to see the example how the api endpoint works with example:
+  ```bash
+   https://documenter.getpostman.com/view/31289209/2s9YsDjZsE
    ```
